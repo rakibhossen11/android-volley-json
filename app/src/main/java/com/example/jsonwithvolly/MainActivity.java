@@ -4,7 +4,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -28,32 +31,67 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView textView;
     private ProgressBar progressBar;
+    private EditText tvname,tvphone,tvemail,tvaddress;
+    private Button loadbtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        textView = findViewById(R.id.textView);
         progressBar = findViewById(R.id.progressBar);
+        tvname = findViewById(R.id.name);
+        tvphone = findViewById(R.id.phone);
+        tvemail = findViewById(R.id.email);
+        tvaddress = findViewById(R.id.address);
+        loadbtn = findViewById(R.id.loadbtn);
 
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, "https://rakibhossen.000webhostapp.com/apps/info.json", new Response.Listener<String>() {
+        loadbtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onResponse(String response) {
-                textView.setText(response);
-                progressBar.setVisibility(View.GONE);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                textView.setText("That did not work");
-                progressBar.setVisibility(View.GONE);
-            }
-        }
-        );
+            public void onClick(View view) {
 
-        RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
-        requestQueue.add(stringRequest);
+                progressBar.setVisibility(View.VISIBLE);
+
+                RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
+                String url = "https://rakibhossen.000webhostapp.com/apps/info.json";
+
+                // Request a string response from the provided URL.
+                StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                // Display the first 500 characters of the response string.
+                                progressBar.setVisibility(View.GONE);
+                                Log.d("onResponse: ",response);
+
+                                try {
+                                    JSONObject jsonObject = new JSONObject(response);
+                                    String name = jsonObject.getString("name");
+                                    String phone = jsonObject.getString("phone");
+                                    String email = jsonObject.getString("email");
+                                    String address = jsonObject.getString("address");
+
+                                    tvname.setText(name);
+                                    tvphone.setText(phone);
+                                    tvemail.setText(email);
+                                    tvaddress.setText(address);
+
+                                }catch (Exception e){
+                                 e.printStackTrace();
+                                }
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(MainActivity.this, "file error", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                // Add the request to the RequestQueue.
+                queue.add(stringRequest);
+
+            }
+        });
 
     }
 }
